@@ -1,5 +1,5 @@
 # Message service
-
+The message-service is a spring boot based microservice which exposes a number of endpoints to retrive messages to/from database. The service is auto-discoverable through **consul**. The message-service dynamically discovers another microsevrice **uuid-generator** (I have written https://github.com/azam-akram/uuid-generator) and fetches uuid for each new message.
 
 ### Run application without docker container
 
@@ -8,35 +8,34 @@
 docker run -p 8500:8500 consul-latest
 ```
 Go to http://localhost:8500 and see consul service is up and running.
-- Second, the message service fetches the uuid from uuid-generator service. so uuid-generator service must be available in consul before message-service fetch the uuid.
-For this, go to uuid-generator project and build the whole project
+- Second, the message-service fetches uuid for each message from uuid-generator service. So uuid-generator service must be registered to the consul server. Find the instruction about how to run uuid-generator service here https://github.com/azam-akram/uuid-generator.
+
+Go to uuid-generator project and build the whole project
 ```bash
 gradlew clean build
 ```
 and then run the GeneratorApplication.
 Go to http://localhost:8500 and see new uuid-generator service is added to the dashboard.
+
 - Then come back here and build the whole message-service projects and tests
 ```bash
 gradlew clean build
 ```
-- Now run MessageApplication, which starts Tomcat at port 9999. Go to http://localhost:8500 and see new message-service service is added to the dashboard.
+- Now run MessageApplication, which starts Tomcat at port 9999 and registers itself to consul server.
+Go to http://localhost:8500 and see now both uuid-generator and message-service services are added to the dashboard.
 
 ### Application Consul configuration
-
-In order to make service discoverable in consul, use spring cloud dependency and used @EnableDiscoveryClient,
+In order to make service discoverable in consul, I use spring cloud dependency and **@EnableDiscoveryClient**,
 ```java
 @EnableDiscoveryClient
 @SpringBootApplication
 public class MessageApplication {
-
     public static void main(String[] args) {
         SpringApplication.run(MessageApplication.class, args);
     }
-
 }
 ```
-
-and added consul properties in bootstrap.yml files
+and add consul properties in bootstrap.yml files
 ```yml
 spring:
   application:
@@ -103,13 +102,12 @@ DELET: http://{host-ip}:9999/message-service/v1/message/
 
 ### Build and run docker images
 - Go to uuid-generator project and build the docker image by docker-compose. I just build the uuid-generator image there.
-  Use docker-compose in uuid-generator project to build uuid-generator image,
   ```bash
   docker-compose build
   ```
   now the uuid-generator image should be available in image list,
-  ```bash
-  docker-compose build
+    ```bash
+  docker images
   ```
 - Then come back here in message-service project.
 - Build message-service image by,
@@ -120,7 +118,7 @@ DELET: http://{host-ip}:9999/message-service/v1/message/
   ```bash
     docker-compose up
   ```
-Following is the docker-compose.yml
+Following is my docker-compose.yml
 ```yaml
  version: '2.2'
 
@@ -153,5 +151,3 @@ services:
     links:
     - "consul"
 ```
-
-### To do
