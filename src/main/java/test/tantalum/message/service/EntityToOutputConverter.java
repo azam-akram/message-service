@@ -7,9 +7,6 @@ import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.StreamSupport;
 
-/**
- * Converts from JPA Entity classes (model.entity.*Entity) into output classes (model.output.*).
- */
 public class EntityToOutputConverter {
 
     private EntityToOutputConverter() {
